@@ -1,0 +1,10 @@
+node_modules/
+.clip-chrome-profile/
+TikTok-Klipleri/
+*.webm
+*.log
+.env
+.DS_Store
+Thumbs.db
+
+
