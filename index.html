@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Polat & Elif Düğünü</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#2a1d40;font-family:system-ui,sans-serif}
+canvas{display:block}
+body.clipMode canvas{box-shadow:0 0 45px #000;position:absolute;left:50%;transform:translateX(-50%);width:auto!important;height:100vh!important;max-width:100vw}
+#top{position:fixed;top:10px;left:50%;transform:translateX(-50%);width:max-content;max-width:94vw;padding:7px 24px 8px;text-align:center;color:#fff0a8;font-size:clamp(25px,2.5vw,38px);font-family:Georgia,serif;font-weight:900;letter-spacing:.5px;text-shadow:0 2px 4px #3d1630,0 0 13px #ffca63,0 0 26px #ff79a8;background:linear-gradient(90deg,#381b52dd,#6b275ddd,#381b52dd);border:2px solid #f5d777;border-radius:18px;box-shadow:0 5px 24px #0009,0 0 18px #f5d77766;pointer-events:none;z-index:4}
+#top small{display:block;font-size:15px;color:#fff;font-weight:400;margin-top:4px}
+#toast{position:fixed;bottom:90px;left:0;right:0;text-align:center;color:#fff;font-size:22px;text-shadow:0 2px 8px #000;pointer-events:none;opacity:0;transition:opacity .4s}
+#ui{position:fixed;bottom:12px;left:0;right:0;text-align:center}
+#ui input,#ui select,#ui button{font-size:16px;padding:8px 12px;border-radius:8px;border:0;margin:0 3px}
+#musicPanel,#wallPanel{display:none;position:fixed;right:14px;bottom:64px;width:min(390px,calc(100vw - 28px));max-height:78vh;overflow:auto;box-sizing:border-box;padding:14px;border:1px solid rgba(255,255,255,.25);border-radius:14px;background:rgba(34,22,52,.96);color:#fff;box-shadow:0 8px 30px #0008;z-index:5}
+#musicPanel.open,#wallPanel.open{display:block}#musicPanel strong,#wallPanel strong{display:block;color:#ffe9a8;margin-bottom:9px}
+#musicPanel label,#wallPanel label{display:block;font-size:13px;margin-top:9px;color:#f6eafa}#musicPanel input[type="text"],#musicPanel input[type="file"],#wallPanel input[type="text"],#wallPanel input[type="file"]{width:100%;box-sizing:border-box;margin-top:4px;padding:7px;border:0;border-radius:7px}
+#musicPanel .musicRow,#wallPanel .wallRow{display:flex;align-items:center;gap:8px;margin-top:11px}#musicPanel button,#wallPanel button{padding:7px 10px;border:0;border-radius:7px}#musicPanel input[type="range"]{flex:1}
+#wallPanel hr{border:0;border-top:1px solid #ffffff28;margin:14px 0}#wallPanel input[type="color"]{width:54px;height:32px;padding:2px;border:0;border-radius:6px;vertical-align:middle;margin-left:8px}
+#musicNote{font-size:12px;color:#d9cde3;margin-top:8px;line-height:1.35}
+#musicStatus{font-size:12px;color:#9ff0b7;margin-top:8px;min-height:16px}#youtubePlayer{position:fixed;width:240px;height:135px;left:-9999px;top:0;opacity:.01;pointer-events:none}.clean #ui,.clean #musicPanel,.clean #wallPanel{display:none}
+#clipCaption{position:fixed;top:86px;left:50%;transform:translateX(-50%) scale(.9);width:min(82vw,560px);padding:10px 18px;box-sizing:border-box;text-align:center;border-radius:18px;background:linear-gradient(90deg,#ff3d72dd,#7a42d8dd);color:#fff;font-weight:900;font-size:clamp(20px,3vw,34px);text-shadow:0 2px 5px #0008;box-shadow:0 8px 25px #0006;z-index:4;opacity:0;transition:.28s;pointer-events:none}#clipCaption.show{opacity:1;transform:translateX(-50%) scale(1)}
+</style></head><body>
+<div id="top">💍 Polat &amp; Elif'in Düğünü — 80 Kişilik Balo Salonu<small>Yoruma “Ayşe k” / “Mehmet e” • 10 Gram • 50 Çeyrek • 100 Yarım • 250 Tam • 500 Bilezik • 1000 Çelenk 🎁</small></div>
+<div id="toast"></div>
+<div id="clipCaption"></div>
+<div id="ui"><input id="n" placeholder="İsim yaz" maxlength="14"><select id="gender" aria-label="Cinsiyet"><option value="female">Kadın</option><option value="male">Erkek</option><option value="random">Rastgele</option></select><button id="add">Davetli ekle</button><button id="gift10">Test Gram</button><button id="gift50">Test Çeyrek</button><button id="gift500">Test Bilezik</button><button id="gift1000">Test Çelenk</button><button id="clipMode">🎬 Klip Modu</button><button id="musicSettings">🎵 Müzik</button><button id="wallSettings">🖼️ Duvarlar</button></div>
+<div id="musicPanel"><strong>🎵 Arka Plan Müziği</strong><label>YouTube video bağlantısı<input id="youtubeUrl" type="text" placeholder="https://www.youtube.com/watch?v=..."></label><label>Bilgisayardan ses dosyası seç<input id="musicFile" type="file" accept="audio/*"></label><label>veya doğrudan ses bağlantısı gir<input id="musicUrl" type="text" placeholder="https://.../muzik.mp3"></label><div class="musicRow"><button id="musicApply">YouTube'da Çal</button><button id="musicToggle">▶ Çal</button><button id="soundTest">🔊 Ses testi</button><span>Ses</span><input id="musicVolume" type="range" min="0" max="1" step="0.05" value="0.35"></div><div id="musicStatus">Müzik bekliyor.</div><div id="musicNote">YouTube URL'sini yapıştırıp “YouTube'da Çal”a bas. Video ayrı sekmede açılır; ses bilgisayardan ve OBS Masaüstü Ses kaynağından çıkar.</div></div>
+<div id="wallPanel"><strong>🖼️ Duvar ve Sahne Görselleri</strong><label>Sol duvar rengi <input id="leftWallColor" type="color" value="#59396d"></label><label>Sol duvar resmi seç<input id="leftWallFile" type="file" accept="image/*"></label><label>veya resim bağlantısı<input id="leftWallUrl" type="text" placeholder="https://.../resim.jpg"></label><div class="wallRow"><button id="leftWallApply">Sol duvara uygula</button></div><hr><label>Sağ duvar rengi <input id="rightWallColor" type="color" value="#59396d"></label><label>Sağ duvar resmi seç<input id="rightWallFile" type="file" accept="image/*"></label><label>veya resim bağlantısı<input id="rightWallUrl" type="text" placeholder="https://.../resim.jpg"></label><div class="wallRow"><button id="rightWallApply">Sağ duvara uygula</button><button id="wallReset">Duvarları sıfırla</button></div><hr><strong>👰🤵 Gelin-Damat Arkası</strong><label>Sahne arkası resmi seç<input id="backdropFile" type="file" accept="image/*"></label><label>veya resim bağlantısı<input id="backdropUrl" type="text" placeholder="https://.../resim.jpg"></label><div class="wallRow"><button id="backdropApply">Arkaya uygula</button><button id="backdropClear">Arka resmi kaldır</button></div><div id="musicNote">Yan görseller sahne bloğunun köşelerine göre hizalanır. Bütün görseller tek parça ve oranı korunarak alanı doldurur.</div></div>
+<audio id="bgMusic" loop preload="none"></audio>
+<div id="youtubePlayer" title="YouTube arka plan müziği"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+if(location.hash==='#temiz')document.body.classList.add('clean');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x2a1d40);scene.fog=new THREE.Fog(0x2a1d40,18,40);
+const cam=new THREE.PerspectiveCamera(50,1,0.1,100);
+const ren=new THREE.WebGLRenderer({antialias:true});
+ren.shadowMap.enabled=true;ren.shadowMap.type=THREE.PCFSoftShadowMap;
+ren.outputEncoding=THREE.sRGBEncoding;ren.toneMapping=THREE.ACESFilmicToneMapping;ren.toneMappingExposure=1.08;
+document.body.appendChild(ren.domElement);
+let portraitMode=false;
+function fit(){const recording=new URLSearchParams(location.search).get('record')==='1';const h=recording?1920:innerHeight,w=recording?1080:(portraitMode?Math.min(innerWidth,Math.round(h*9/16)):innerWidth);ren.setSize(w,h);const a=w/h;cam.aspect=a;if(recording||portraitMode){cam.position.set(0,5,12.2);cam.lookAt(0,1.05,-5)}else{cam.position.set(0,6,14.5);cam.lookAt(0,1.35,-3.7)}cam.updateProjectionMatrix()}
+addEventListener('resize',fit);fit();
+scene.add(new THREE.AmbientLight(0xffffff,0.7));
+const sun=new THREE.DirectionalLight(0xfff0d0,0.85);sun.position.set(4,10,8);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-12;sun.shadow.camera.right=12;sun.shadow.camera.top=12;sun.shadow.camera.bottom=-12;scene.add(sun);
+const warm=new THREE.PointLight(0xffd9a0,1.2,22);warm.position.set(0,4.5,-6);scene.add(warm);
+const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.75},o));
+const mesh=(geo,mat,x=0,y=0,z=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;return m};
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---- Salon ---- */
+const leftWallMat=M(0x59396d,{roughness:.78}),rightWallMat=M(0x59396d,{roughness:.78});
+scene.add(mesh(new THREE.BoxGeometry(.18,8,34),leftWallMat,-9,4,2));
+scene.add(mesh(new THREE.BoxGeometry(.18,8,34),rightWallMat,9,4,2));
+const leftWallArt=mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}),-8.89,4,-5.7);
+const rightWallArt=mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}),8.89,4,-5.7);
+leftWallArt.rotation.y=Math.PI/2;rightWallArt.rotation.y=-Math.PI/2;leftWallArt.scale.set(11.4,8,1);rightWallArt.scale.set(11.4,8,1);leftWallArt.visible=rightWallArt.visible=false;scene.add(leftWallArt,rightWallArt);
+scene.add(mesh(new THREE.BoxGeometry(18,.1,34),M(0xd8c8ae,{roughness:.3,metalness:.08}),0,-.05,2));
+scene.add(mesh(new THREE.BoxGeometry(18,8,.2),M(0x4a3566),0,4,-11.5));
+const backdropArt=mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide}),0,3.35,-11.37);backdropArt.scale.set(5.5,4.8,1);backdropArt.visible=false;scene.add(backdropArt);
+const danceFloor=mesh(new THREE.BoxGeometry(7.2,.08,25),M(0xeadcc8,{roughness:.18,metalness:.12}),0,.015,2);scene.add(danceFloor);
+for(let x=-3.3;x<=3.3;x+=1.1)scene.add(mesh(new THREE.BoxGeometry(.018,.01,24.7),M(0xc9b18e,{metalness:.35}),x,.061,2));
+for(let z=-10;z<=14;z+=1.25)scene.add(mesh(new THREE.BoxGeometry(6.95,.01,.018),M(0xc9b18e,{metalness:.35}),0,.062,z));
+scene.add(mesh(new THREE.BoxGeometry(10.2,.2,3.2),M(0xf5ecd9),0,.1,-8.8));
+const coupleTable=mesh(new THREE.CylinderGeometry(2.15,2.15,.72,48,1,false,0,Math.PI),M(0xfffaf0,{roughness:.45}),0,.55,-7.75);coupleTable.rotation.y=Math.PI/2;scene.add(coupleTable);
+for(let i=0;i<13;i++){const x=-2.2+i*.36;scene.add(mesh(new THREE.SphereGeometry(.13+(i%3)*.025,10,8),M(i%2?0xfff5dd:0xffffff),x,1.03,-7.18));if(i%2===0)scene.add(mesh(new THREE.SphereGeometry(.09,9,7),M(0x4c7a50),x+.1,.94,-7.2))}
+for(const x of[-2.4,2.4])scene.add(mesh(new THREE.CylinderGeometry(.12,.12,3.2,10),M(0xffffff),x,1.6,-9.8));
+const arc=mesh(new THREE.TorusGeometry(2.4,.12,8,40,Math.PI),M(0xffffff),0,3.2,-9.8);scene.add(arc);
+for(let i=0;i<=22;i++){const a=i/22*Math.PI;scene.add(mesh(new THREE.SphereGeometry(.17+Math.random()*.06,8,8),M(rnd([0xff8fb8,0xffd1e0,0xffffff,0xff6f9c])),Math.cos(a)*2.4,3.2+Math.sin(a)*2.4,-9.8+(Math.random()-.5)*.2))}
+for(const x of[-2.4,2.4])for(let j=0;j<5;j++)scene.add(mesh(new THREE.SphereGeometry(.2,8,8),M(rnd([0xff8fb8,0xffffff])),x,.4+j*.65,-9.8));
+
+/* ---- Salon süsleri ---- */
+const gold=M(0xd6ad45,{metalness:.7,roughness:.28}),ivory=M(0xfff7e6),rose=M(0xd96882),green=M(0x315f3b);
+for(const x of[-8.4,8.4]){
+  const curtain=mesh(new THREE.BoxGeometry(.7,6.7,.18),M(0x68273e,{roughness:.55}),x,3.35,-11.25);scene.add(curtain);
+  for(let y=.65;y<6.3;y+=.55)scene.add(mesh(new THREE.TorusGeometry(.37,.045,6,14),gold,x,y,-11.12));
+}
+for(const x of[-6.7,6.7]){
+  scene.add(mesh(new THREE.CylinderGeometry(.1,.13,3.3,10),gold,x,1.65,-9.65));
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2,c=rnd([0xffffff,0xffb3c8,0xe58ba5]);
+    scene.add(mesh(new THREE.SphereGeometry(.15,9,8),M(c),x+Math.cos(a)*.38,3.35+Math.sin(a)*.28,-9.62))}
+}
+for(const x of[-5.5,0,5.5]){
+  scene.add(mesh(new THREE.CylinderGeometry(.025,.025,1.5,6),gold,x,7.25,-3.2));
+  const ring=mesh(new THREE.TorusGeometry(.65,.045,8,28),gold,x,6.45,-3.2);ring.rotation.x=Math.PI/2;scene.add(ring);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const bulb=mesh(new THREE.SphereGeometry(.07,8,7),M(0xffe2a8,{emissive:0xffb347,emissiveIntensity:1.5}),x+Math.cos(a)*.65,6.45+Math.sin(a)*.65,-3.2);scene.add(bulb)}
+}
+for(let i=0;i<17;i++){const x=-7.6+i*.95;const bulb=mesh(new THREE.SphereGeometry(.055,7,6),M(0xffe0a0,{emissive:0xffb040,emissiveIntensity:1.8}),x,6.7+Math.sin(i*.8)*.22,-10.9);scene.add(bulb)}
+for(const z of[-5.5,1.5,8.5]){
+  scene.add(mesh(new THREE.CylinderGeometry(.035,.035,1.25,8),gold,0,7.4,z));
+  for(const r of[.35,.7]){const ring=mesh(new THREE.TorusGeometry(r,.045,8,32),gold,0,6.75-(r-.35)*.55,z);ring.rotation.x=Math.PI/2;scene.add(ring);for(let i=0;i<12;i++){const a=i/12*Math.PI*2;scene.add(mesh(new THREE.SphereGeometry(.055,8,7),M(0xffe7b0,{emissive:0xffb84a,emissiveIntensity:2}),Math.cos(a)*r,6.75-(r-.35)*.55,z+Math.sin(a)*r))}}
+  const chandelierLight=new THREE.PointLight(0xffd59a,1.1,10);chandelierLight.position.set(0,6.2,z);scene.add(chandelierLight);
+}
+const signCanvas=document.createElement('canvas');signCanvas.width=1400;signCanvas.height=260;const sx=signCanvas.getContext('2d');
+sx.clearRect(0,0,1400,260);sx.fillStyle='rgba(55,24,67,.82)';sx.strokeStyle='#f5d777';sx.lineWidth=12;sx.beginPath();sx.roundRect(20,18,1360,220,42);sx.fill();sx.stroke();sx.textAlign='center';sx.font='bold 122px Georgia';sx.fillStyle='#fff0a8';sx.shadowColor='#ff72a7';sx.shadowBlur=25;sx.fillText('POLAT  &  ELİF',700,168);sx.font='bold 35px sans-serif';sx.fillStyle='#ffffff';sx.shadowBlur=10;sx.fillText('BİZİM DÜĞÜNÜMÜZ',700,218);
+const sign=mesh(new THREE.PlaneGeometry(7.4,1.37),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(signCanvas),transparent:true}),0,6.05,-11.3);sign.renderOrder=3;scene.add(sign);
+
+/* ---- Kenarlarda 10 yuvarlak masa, 80 sandalye ---- */
+const slots=[];
+function addTable(cx,cz,tableNo){
+  scene.add(mesh(new THREE.CylinderGeometry(1.18,1.18,.12,40),M(0xfffbf2,{roughness:.5}),cx,.72,cz));
+  scene.add(mesh(new THREE.CylinderGeometry(.16,.3,.7,18),gold,cx,.35,cz));
+  scene.add(mesh(new THREE.CylinderGeometry(.37,.37,.035,24),gold,cx,.02,cz));
+  scene.add(mesh(new THREE.CylinderGeometry(.13,.19,.42,16),M(0xe7c96a,{metalness:.5}),cx,1.01,cz));
+  for(let i=0;i<11;i++){const a=i/11*Math.PI*2,r=.18+(i%2)*.12;scene.add(mesh(new THREE.SphereGeometry(.11,9,7),M(i%3?0xfff5dc:0xffffff),cx+Math.cos(a)*r,1.3+Math.sin(a*2)*.08,cz+Math.sin(a)*r));if(i%3===0)scene.add(mesh(new THREE.SphereGeometry(.075,8,6),green,cx+Math.cos(a)*r*1.35,1.2,cz+Math.sin(a)*r*1.35))}
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2,x=cx+Math.cos(a)*1.55,z=cz+Math.sin(a)*1.55,rot=Math.atan2(cx-x,cz-z);slots.push({x,z,rot,g:null,table:tableNo});
+    const chair=new THREE.Group();chair.position.set(x,0,z);chair.rotation.y=rot+Math.PI;
+    chair.add(mesh(new THREE.BoxGeometry(.55,.08,.52),M(0xf8f4e9),0,.46,0));chair.add(mesh(new THREE.BoxGeometry(.55,.7,.055),M(0xf8f4e9),0,.84,.29));
+    for(const dx of[-.22,.22])for(const dz of[-.2,.2])chair.add(mesh(new THREE.CylinderGeometry(.025,.025,.46,6),gold,dx,.23,dz));scene.add(chair)}
+}
+let tableNo=1;for(const z of[-5.2,-1.6,2,5.6,9.2])for(const x of[-6.15,6.15])addTable(x,z,tableNo++);
+
+/* ---- Karakter ---- */
+function person(o){
+  const g=new THREE.Group(),sk=M(o.skin),top=M(o.top),bot=M(o.bottom),hair=M(o.hair);
+  const legs=[],arms=[];
+  for(const s of[-1,1]){const hip=new THREE.Group();hip.position.set(s*.13,.95,0);
+    hip.add(mesh(new THREE.CylinderGeometry(.09,.08,.45,8),bot,0,-.22,0));
+    const knee=new THREE.Group();knee.position.y=-.45;
+    knee.add(mesh(new THREE.CylinderGeometry(.08,.07,.5,8),bot,0,-.25,0));
+    const shoe=mesh(new THREE.BoxGeometry(.15,.075,.29),M(o.female?0x6f3048:0x15171b,{roughness:.34}),0,-.5,.075);shoe.rotation.x=-.06;knee.add(shoe);
+    hip.add(knee);hip.knee=knee;g.add(hip);legs.push(hip)}
+  g.add(mesh(new THREE.CylinderGeometry(o.female?.29:.3,o.female?.21:.25,.62,22),top,0,1.25,0));
+  if(o.dress)g.add(mesh(new THREE.CylinderGeometry(.24,o.bride?.68:.4,o.bride?1.18:.55,24),top,0,o.bride?.58:.78,0));
+  if(o.bride){
+    g.add(mesh(new THREE.CylinderGeometry(.38,.78,.72,28),M(0xfffdf8,{roughness:.38}),0,.31,0));
+    g.add(mesh(new THREE.TorusGeometry(.28,.035,8,24),M(0xd6ad45,{metalness:.75}),0,1.02,0));
+    g.add(mesh(new THREE.TorusGeometry(.48,.025,8,30),M(0xffffff,{roughness:.25}),0,.43,.01));
+    g.add(mesh(new THREE.TorusGeometry(.61,.022,8,34),M(0xfff6ee,{roughness:.3}),0,.18,.01));
+  }
+  if(!o.female){g.add(mesh(new THREE.BoxGeometry(.14,.42,.02),M(0xffffff),0,1.28,.265));
+    for(const s of[-1,1])g.add(mesh(new THREE.BoxGeometry(.08,.07,.03),M(o.tie||0x111111),s*.045,1.5,.27))}
+  if(o.groom){
+    for(const s of[-1,1]){const lap=mesh(new THREE.BoxGeometry(.12,.48,.035),M(0x0d1220,{metalness:.15,roughness:.4}),s*.12,1.35,.276);lap.rotation.z=s*.32;g.add(lap)}
+    for(let y=1.12;y<1.4;y+=.13)g.add(mesh(new THREE.SphereGeometry(.018,7,6),gold,0,y,.29));
+    g.add(mesh(new THREE.BoxGeometry(.43,.055,.03),M(0x111111),0,1.02,.26));
+  }
+  for(const s of[-1,1]){const sh=new THREE.Group();sh.position.set(s*.34,1.5,0);sh.s=s;
+    const shoulder=mesh(new THREE.SphereGeometry(.105,14,11),top,0,-.04,0);shoulder.scale.set(1.08,1,.95);sh.add(shoulder);
+    sh.add(mesh(new THREE.CylinderGeometry(.065,.058,.27,12),top,0,-.18,0));
+    sh.add(mesh(new THREE.SphereGeometry(.058,12,10),sk,0,-.34,0));
+    sh.add(mesh(new THREE.CylinderGeometry(.052,.044,.25,12),sk,0,-.46,0));
+    const hand=mesh(new THREE.SphereGeometry(.058,12,10),sk,0,-.61,.005);hand.scale.set(.85,1.12,.72);sh.add(hand);g.add(sh);arms.push(sh)}
+  g.add(mesh(new THREE.CylinderGeometry(.075,.085,.12,10),sk,0,1.59,0));
+  const face=mesh(new THREE.SphereGeometry(.21,28,24),sk,0,1.78,0);face.scale.set(.92,1.08,.9);g.add(face);
+  for(const s of[-1,1]){
+    const eyeWhite=mesh(new THREE.SphereGeometry(.022,14,11),M(0xf7f4ee),s*.068,1.79,.188);eyeWhite.scale.set(1.22,.72,.55);g.add(eyeWhite);
+    const iris=mesh(new THREE.SphereGeometry(.0105,12,10),M(o.eye||0x35251d),s*.068,1.79,.207);iris.scale.set(.92,1,.5);g.add(iris);
+    g.add(mesh(new THREE.SphereGeometry(.0027,6,5),M(0xffffff),s*.065,1.794,.214));
+    const brow=mesh(new THREE.BoxGeometry(.067,.011,.012),hair,s*.069,1.847,.199);brow.rotation.z=-s*.06;g.add(brow);
+    g.add(mesh(new THREE.SphereGeometry(.028,10,8),sk,s*.195,1.77,-.005));
+    if(o.female){g.add(mesh(new THREE.SphereGeometry(.018,8,6),M(0xf2a0a8,{transparent:true,opacity:.38}),s*.125,1.725,.178));
+      const lash=mesh(new THREE.BoxGeometry(.052,.006,.009),M(0x241814),s*.068,1.812,.211);lash.rotation.z=-s*.05;g.add(lash);
+      g.add(mesh(new THREE.SphereGeometry(.014,8,7),M(0xd6ad45,{metalness:.8}),s*.202,1.695,.005))}
+  }
+  const nose=mesh(new THREE.ConeGeometry(.017,.052,10),sk,0,1.755,.205);nose.rotation.x=Math.PI/2;g.add(nose);
+  const smile=mesh(new THREE.TorusGeometry(.038,.006,6,18,Math.PI),M(o.female?0xb85b63:0x8d554d),0,1.705,.192);smile.rotation.z=Math.PI;g.add(smile);
+  const hairCap=mesh(new THREE.SphereGeometry(.228,26,16,0,Math.PI*2,0,Math.PI*.43),hair,0,1.795,-.03);hairCap.scale.set(1.03,1.05,1.04);g.add(hairCap);
+  for(const s of[-1,0,1]){const fringe=mesh(new THREE.SphereGeometry(.048,14,10),hair,s*.063,1.925,.11);fringe.scale.set(1,.52,.62);fringe.rotation.z=s*.18;g.add(fringe)}
+  if(o.female){
+    if(!o.bride)g.add(mesh(new THREE.TorusGeometry(.255,.025,7,22),M(0xd6ad45,{metalness:.55}),0,1.02,0));
+    if(!o.bride){g.add(mesh(new THREE.TorusGeometry(.105,.012,7,20,Math.PI),M(0xf3d37a,{metalness:.7}),0,1.535,.235));g.add(mesh(new THREE.SphereGeometry(.022,8,7),M(0xf3d37a,{metalness:.75}),0,1.49,.25))}
+    if(o.hairStyle===1){for(const s of[-1,1])g.add(mesh(new THREE.CylinderGeometry(.075,.11,.62,10),hair,s*.17,1.5,-.1))}
+    else if(o.hairStyle===2){g.add(mesh(new THREE.SphereGeometry(.16,14,10),hair,0,1.72,-.18));g.add(mesh(new THREE.SphereGeometry(.1,12,9),hair,.13,1.55,-.17));g.add(mesh(new THREE.TorusGeometry(.11,.018,7,20),M(0xd6ad45,{metalness:.65}),.13,1.56,-.16))}
+    else g.add(mesh(new THREE.BoxGeometry(.4,.55,.13),hair,0,1.55,-.16));
+  }else{for(const s of[-1,1]){const lap=mesh(new THREE.BoxGeometry(.1,.34,.025),M(0xffffff,{roughness:.5}),s*.105,1.34,.27);lap.rotation.z=s*.28;g.add(lap)}for(let y=1.12;y<1.4;y+=.13)g.add(mesh(new THREE.SphereGeometry(.014,6,5),M(0xd6ad45,{metalness:.7}),0,y,.292));if(o.hairStyle===2)g.add(mesh(new THREE.BoxGeometry(.3,.09,.25),hair,0,1.94,-.01))}
+  if(o.bride){g.add(mesh(new THREE.BoxGeometry(.74,1.25,.02),M(0xffffff,{transparent:true,opacity:.5,side:THREE.DoubleSide}),0,1.25,-.27));
+    const tiara=M(0xf6de80,{metalness:.85,roughness:.2});g.add(mesh(new THREE.TorusGeometry(.15,.015,6,24,Math.PI),tiara,0,1.985,.015));
+    for(const x of[-.09,-.045,0,.045,.09])g.add(mesh(new THREE.SphereGeometry(x===0?.022:.015,8,7),M(0xffffff,{metalness:.25}),x,2.035-Math.abs(x)*.25,.02));
+    for(let x=-.12;x<=.12;x+=.06)g.add(mesh(new THREE.SphereGeometry(.013,8,7),M(0xf5e7bd,{metalness:.4}),x,1.55,.255));
+    g.add(mesh(new THREE.SphereGeometry(.14,12,10),M(0xff6f9c),0,1.12,.36));
+    for(const p of [[.1,1.08],[.04,1.19],[-.09,1.08]])g.add(mesh(new THREE.SphereGeometry(.075,10,8),M(p[0]>0?0xffffff:0xffb3c8),p[0],p[1],.37));
+    arms.forEach(a=>a.rotation.x=-.95)}
+  g.scale.setScalar(o.scale||1);g.userData={legs,arms,ph:Math.random()*6,orn:[]};return g}
+function label(t){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');
+  x.font='bold 32px sans-serif';x.textAlign='center';x.fillStyle='rgba(0,0,0,.6)';x.fillRect(8,8,240,48);
+  x.fillStyle='#fff';x.fillText(t,128,44);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false}));
+  s.scale.set(1.9,.48,1);s.position.y=2.35;s.renderOrder=10;return s}
+
+const skins=[0xf1c9a5,0xe8bb98,0xd6a37c,0xb07a53,0x8a5a3a];
+const hairs=[0x1c1410,0x3b2314,0x6b4423,0xc9a24d,0x7a2e1a,0x222222];
+const tops=[0xe74c3c,0x3498db,0x9b59b6,0xf39c12,0x1abc9c,0xec407a,0x5c6bc0,0x27ae60,0xe67e22];
+const bottoms=[0x27364a,0x402b52,0x3d4c3a,0x592f3f,0x263238,0x7b4b28];
+const bride=person({female:1,bride:1,dress:1,hairStyle:2,scale:1.18,skin:0xf1c9a5,hair:0x3b2314,eye:0x4d321f,top:0xffffff,bottom:0xffffff});
+const groom=person({groom:1,hairStyle:2,scale:1.18,skin:0xe8bb98,hair:0x1c1410,eye:0x2f241f,top:0x111827,bottom:0x111827,tie:0xb3122f});
+const imam=person({scale:1.03,skin:0xe0b090,hair:0x777777,eye:0x3b2b25,top:0x4d4d5c,bottom:0x33333d,tie:0xdddddd});
+bride.position.set(-.7,.2,-8.6);groom.position.set(.7,.2,-8.6);imam.position.set(0,.2,-9.4);
+scene.add(bride,groom,imam);
+
+/* ---- Davetliler ---- */
+const guests=[];let repl=0;
+function addGuest(name,gender='random',userId=''){
+  name=String(name||'').trim().slice(0,14);if(!name)return;
+  if(userId){const existing=guests.find(x=>x.userData.userId===String(userId));if(existing)return existing}
+  let si=slots.findIndex(s=>!s.g);
+  if(si<0){si=repl;repl=(repl+1)%slots.length;const old=slots[si].g;if(old){scene.remove(old);guests.splice(guests.indexOf(old),1)}}
+  const f=gender==='female'?true:gender==='male'?false:Math.random()<.5,top=rnd(tops),bottom=rnd(bottoms);
+  const g=person({female:f,dress:f,hairStyle:Math.floor(Math.random()*3),scale:.9+Math.random()*.18,skin:rnd(skins),hair:rnd(hairs),eye:rnd([0x2f241f,0x4c3928,0x24384d]),top,bottom:f?top:bottom,tie:rnd([0xb3122f,0x2c5fb3,0x111111,0xd6ad45])});
+  g.add(label(name));const s=slots[si];s.g=g;
+  g.position.set(0,0,10);Object.assign(g.userData,{name,userId:String(userId||''),seat:s,path:[{x:0,z:s.z},{x:s.x,z:s.z}],i:0,sitting:false,mode:'entering',photoQueue:[]});
+  scene.add(g);guests.push(g);clapUntil=clock.getElapsedTime()+3;toast('🎉 '+name+' düğüne katıldı!');return g}
+function resetStandingPose(g){const u=g.userData;u.legs.forEach(l=>{l.rotation.x=0;l.knee.rotation.x=0});u.arms.forEach(a=>{a.rotation.x=0;a.rotation.z=0});g.position.y=0;g.rotation.z=0}
+function sitGuest(g){const u=g.userData;u.sitting=true;u.mode='seated';g.rotation.y=Number.isFinite(u.seat.rot)?u.seat.rot:Math.PI;if(u.clipGuest){g.position.y=0;resetStandingPose(g);const tag=g.children.find(x=>x.isSprite);if(tag)tag.visible=false;return}g.position.y=-.45;u.legs.forEach(l=>{l.rotation.x=-Math.PI/2;l.knee.rotation.x=Math.PI/2})}
+function beginPhotoTrip(g){const u=g.userData;if(!u.photoQueue.length||u.mode!=='seated')return;const job=u.photoQueue.shift(),side=job.target===bride?-1:1;u.photoJob=job;u.mode='toPhoto';u.sitting=false;resetStandingPose(g);const tag=g.children.find(x=>x.isSprite);if(tag)tag.visible=true;u.path=[{x:Math.sign(g.position.x||side)*1.35,z:g.position.z},{x:0,z:g.position.z},{x:0,z:-7.4},{x:side*1.45,z:-8.5}];u.i=0;toast('📸 '+u.name+' takı ve fotoğraf için geliyor!')}
+function queuePhoto(g,target,actionData={}){if(!g)return;g.userData.photoQueue.push(Object.assign({target},actionData));if(g.userData.mode==='seated')beginPhotoTrip(g)}
+function beginReturnTrip(g){const u=g.userData,s=u.seat,side=Math.sign(s.x)||1;u.mode='returning';u.sitting=false;resetStandingPose(g);u.path=[{x:0,z:-7.4},{x:0,z:s.z},{x:side*1.35,z:s.z},{x:s.x,z:s.z}];u.i=0}
+let tt;function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>e.style.opacity=0,2600)}
+
+/* ---- Konfeti ---- */
+const N=600,cp=new Float32Array(N*3),cc=new Float32Array(N*3),cv=new Float32Array(N*3);
+for(let i=0;i<N;i++){cp[i*3+1]=-50;const c=new THREE.Color(rnd([0xff6f9c,0xffd700,0xffffff,0x6fd3ff,0xa7f070]));cc.set([c.r,c.g,c.b],i*3)}
+const cg=new THREE.BufferGeometry();cg.setAttribute('position',new THREE.BufferAttribute(cp,3));cg.setAttribute('color',new THREE.BufferAttribute(cc,3));
+const confetti=new THREE.Points(cg,new THREE.PointsMaterial({size:.24,vertexColors:true,transparent:true,opacity:.96,depthWrite:false,depthTest:false}));
+confetti.frustumCulled=false;confetti.renderOrder=50;scene.add(confetti);
+function burst(){for(let i=0;i<N;i++){cp.set([(Math.random()-.5)*10,4.5+Math.random()*2,-8+(Math.random()-.5)*4],i*3);cv.set([(Math.random()-.5)*6,2.5+Math.random()*5,(Math.random()-.3)*5],i*3)}}
+const wreaths=[];
+function wreathLabel(name,coins){const c=document.createElement('canvas');c.width=600;c.height=150;const x=c.getContext('2d');x.fillStyle='#fff8e8';x.strokeStyle='#b58b31';x.lineWidth=10;x.beginPath();x.roundRect(8,8,584,134,20);x.fill();x.stroke();x.fillStyle='#3c2318';x.textAlign='center';x.font='bold 54px Georgia';x.fillText(String(name||'Davetli').slice(0,14),300,70);x.font='bold 27px sans-serif';x.fillStyle='#a4681e';x.fillText(coins+' JETONLUK ÇELENK',300,115);return new THREE.CanvasTexture(c)}
+function placeWreath(name,coins=1000){const g=new THREE.Group(),idx=wreaths.length%8,side=idx%2?-1:1,row=Math.floor(idx/2);g.position.set(side*(4.1+row*.9),0,-9.25+row*.13);
+  g.add(mesh(new THREE.CylinderGeometry(.055,.075,3.3,10),gold,0,1.65,0));g.add(mesh(new THREE.TorusGeometry(.74,.17,12,36),green,0,2.75,0));
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2,col=rnd([0xffffff,0xffe8b8,0xffb8c9]);g.add(mesh(new THREE.SphereGeometry(.13+(i%3)*.025,9,7),M(col),Math.cos(a)*.74,2.75+Math.sin(a)*.74,.05))}
+  g.add(mesh(new THREE.PlaneGeometry(1.8,.45),new THREE.MeshBasicMaterial({map:wreathLabel(name,coins),transparent:true}),0,2.72,.22));scene.add(g);wreaths.push(g);if(wreaths.length>8){const old=wreaths.shift();scene.remove(old)}burst();toast('💐 '+name+' adına '+coins+' jetonluk çelenk geldi!');return g}
+function runGiftAction(job={}){const action=job.action||'photo',burstCount=Math.max(1,Number(job.burstCount)||1),danceSeconds=Number(job.danceSeconds)||0;burst();for(let b=1;b<burstCount;b++)setTimeout(burst,b*450);clapUntil=clock.getElapsedTime()+(action==='hall'||action==='dance'||action==='wreath'?10:5);warm.intensity=['lights','hall','dance','wreath'].includes(action)?5:3;if(danceSeconds)coupleDanceUntil=Math.max(coupleDanceUntil,clock.getElapsedTime()+danceSeconds)}
+
+/* ---- Hediye -> takı ---- */
+let gi=0;
+function gift(from,jewelry='Takı',coins=0,pieces=1,isGold=true,userId='',action='photo',shouldPhoto=true,danceSeconds=0,burstCount=1){
+  if(action==='wreath'||String(jewelry).toLocaleLowerCase('tr-TR').includes('çelenk')){placeWreath(from||'Davetli',coins||1000);let wg=guests.find(g=>(userId&&g.userData.userId===String(userId))||g.userData.name===from);if(!wg)wg=addGuest(from||'Davetli','random',userId||('wreath-'+from));if(shouldPhoto)queuePhoto(wg,bride,{action:'wreath',burstCount:4});return}
+  const t=gi%2?groom:bride;gi++;
+  const count=Math.max(1,Math.min(Number(pieces)||1,4));
+  for(let j=0;j<count;j++){
+    const quarter=String(jewelry).includes('Çeyrek'),bracelet=String(jewelry).includes('Bilezik');
+    const geo=isGold?(bracelet?new THREE.TorusGeometry(.09,.018,8,24):new THREE.CylinderGeometry(quarter ? .145 : .095,quarter ? .145 : .095,.025,24)):new THREE.SphereGeometry(.1,14,10);
+    const mat=isGold?new THREE.MeshStandardMaterial({color:0xffd700,metalness:.9,roughness:.2}):new THREE.MeshStandardMaterial({color:0xff6f9c,roughness:.45});
+    const m=new THREE.Mesh(geo,mat);
+    if(bracelet){m.rotation.x=Math.PI/2;m.position.set(0,-.25-j*.075,0);t.userData.arms[1].add(m)}
+    else{m.rotation.x=Math.PI/2;m.position.set((j-(count-1)/2)*.17,1.46-(gi%3)*.055,.31);t.add(m)}
+    t.userData.orn.push(m);
+  }
+  while(t.userData.orn.length>8){const old=t.userData.orn.shift();if(old.parent)old.parent.remove(old)}
+  toast('💍 '+(from||'Biri')+' '+(t===bride?'Elif':'Polat')+'’a '+jewelry+' taktı'+(coins?' ('+coins+' jeton)':'')+'!');
+  let guest=guests.find(g=>(userId&&g.userData.userId===String(userId))||g.userData.name===from);if(!guest)guest=addGuest(from==='Test'?'Test Davetli':from,'random',userId||('manual-'+from));const actionData={action,danceSeconds,burstCount};if(action==='dance'&&shouldPhoto){danceTripsPending++;coupleDanceUntil=Infinity;actionData.danceTrip=true;actionData.danceSeconds=0;burst();setTimeout(burst,300)}if(shouldPhoto)queuePhoto(guest,t,actionData);else runGiftAction(actionData)}
+document.getElementById('add').onclick=()=>{const i=document.getElementById('n');addGuest(i.value,document.getElementById('gender').value);i.value=''};
+document.getElementById('n').onkeydown=e=>{if(e.key==='Enter')document.getElementById('add').click()};
+document.getElementById('gift10').onclick=()=>gift('Test','1 Gram Altın',10,1,true);
+document.getElementById('gift50').onclick=()=>gift('Test','1 Çeyrek Altın',50,1,true);
+document.getElementById('gift500').onclick=()=>gift('Test','1 Bilezik',500,1,true,'','dance',true,10,6);
+document.getElementById('gift1000').onclick=()=>gift('Mustafa','İsimli Çelenk',1000,1,true,'','wreath',true,0,4);
+const clipCaption=document.getElementById('clipCaption'),clipButton=document.getElementById('clipMode');let clipRunning=false;
+function clipText(text,ms=2300){clipCaption.textContent=text;clipCaption.classList.add('show');clearTimeout(clipCaption.hideTimer);clipCaption.hideTimer=setTimeout(()=>clipCaption.classList.remove('show'),ms)}
+const clipSpots=[[-3,-4],[3,-4],[-3,-3],[3,-3],[-2.9,-2],[2.9,-2],[-2.7,-1],[2.7,-1],[-2.5,0],[2.5,0]];
+function addClipGuest(data,index=0){const g=addGuest(data[0],data[1],data[2]);if(!g)return;const p=clipSpots[index%clipSpots.length];g.userData.clipGuest=true;g.userData.seat={x:p[0],z:p[1],rot:Math.PI};g.position.set(p[0],0,p[1]);sitGuest(g);return g}
+function startClip(){if(clipRunning)return;if(portraitMode){portraitMode=false;document.body.classList.remove('clipMode');clipButton.textContent='🎬 Klip Modu';fit();return}clipRunning=true;portraitMode=true;document.body.classList.add('clipMode');fit();clipButton.textContent='⏳ Klip oynuyor';musicPanel.classList.remove('open');wallPanel.classList.remove('open');
+  const clipVariant=Number(new URLSearchParams(location.search).get('clip')||1),hooks={1:'Kurtlar Vadisi ekibi düğüne geliyor! 💍',2:'Memati takı için piste çıkıyor! ✨',3:'Güllü Erhan’dan dev çelenk! 💐'};
+  clipText(hooks[clipVariant]||hooks[1],2700);burst();
+  const clipGuests=[['Memati','male','clip-memati'],['Abdülhey','male','clip-abdulhey'],['Güllü Erhan','male','clip-gullu-erhan'],['İskender','male','clip-iskender'],['Süleyman Çakır','male','clip-cakir'],['Aslan Akbey','male','clip-aslan'],['Laz Ziya','male','clip-laz-ziya'],['Halo Dayı','male','clip-halo'],['Pala','male','clip-pala'],['Testere Necmi','male','clip-testere']];
+  clipGuests.forEach((g,i)=>setTimeout(()=>addClipGuest(g,i),500+i*180));
+  setTimeout(()=>clipText('Yorumuna adını yaz, salona gel! ✍️',3000),5000);
+  if(clipVariant===1){
+    setTimeout(()=>gift('Memati','1 Gram Altın',10,1,true,'clip-memati','photo',true,0,2),6500);
+    setTimeout(()=>gift('Abdülhey','1 Çeyrek Altın',50,1,true,'clip-abdulhey','photo',true,0,3),12500);
+    setTimeout(()=>gift('İskender','1 Bilezik',500,1,true,'clip-iskender','dance',true,0,6),18500);
+  }else if(clipVariant===2){
+    setTimeout(()=>{clipText('Memati’den bilezik! 🎁',2600);gift('Memati','1 Bilezik',500,1,true,'clip-memati','dance',true,0,7)},5000);
+    setTimeout(()=>gift('Abdülhey','1 Çeyrek Altın',50,1,true,'clip-abdulhey','photo',true,0,3),15500);
+  }else{
+    setTimeout(()=>{clipText('Güllü Erhan’dan dev çelenk! 💐',3000);gift('Güllü Erhan','İsimli Çelenk',1000,1,true,'clip-gullu-erhan','wreath',true,0,6)},5000);
+    setTimeout(()=>{burst();burst();clipText('Çelenk salondaki yerini aldı! ✨',3200)},15500);
+  }
+  setTimeout(()=>clipText('Canlı düğün için takip et! ❤️',4200),23500);
+  setTimeout(()=>{burst();clipRunning=false;clipButton.textContent='↔ Normal Görünüm'},26500)}
+clipButton.onclick=startClip;
+async function autoRecordClip(){
+  if(new URLSearchParams(location.search).get('record')!=='1'||!window.MediaRecorder||!ren.domElement.captureStream)return;
+  const variant=Number(new URLSearchParams(location.search).get('clip')||1),names={1:'01-kurtlar-vadisi-dugune-geliyor-TIKTOK.webm',2:'02-memati-taki-toreni-TIKTOK.webm',3:'03-gullu-erhan-celenk-TIKTOK.webm'};
+  await new Promise(resolve=>setTimeout(resolve,1800));
+  const stream=ren.domElement.captureStream(30),mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm',chunks=[];
+  const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:7000000});
+  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  recorder.onstop=()=>{const blob=new Blob(chunks,{type:mime}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=names[variant]||names[1];document.body.appendChild(a);a.click();a.remove();document.title='KAYIT HAZIR - '+(names[variant]||names[1])};
+  recorder.start(500);startClip();setTimeout(()=>recorder.stop(),27500);
+}
+autoRecordClip();
+try{if(location.protocol.startsWith('http')){const ws=new WebSocket('ws://'+location.host);
+  ws.onmessage=e=>{const d=JSON.parse(e.data);if(d.type==='name')addGuest(d.name,d.gender||'random',d.userId||'');if(d.type==='gift')gift(d.from,d.jewelry,d.coins,d.pieces,d.gold,d.userId||'',d.action,d.photo,d.danceSeconds,d.burstCount)}}}catch(e){}
+
+/* ---- Arka plan müziği ayarları ---- */
+const music=document.getElementById('bgMusic'),musicPanel=document.getElementById('musicPanel'),wallPanel=document.getElementById('wallPanel'),musicUrl=document.getElementById('musicUrl'),youtubeUrl=document.getElementById('youtubeUrl'),musicToggle=document.getElementById('musicToggle'),musicVolume=document.getElementById('musicVolume'),musicStatus=document.getElementById('musicStatus');
+let localMusicUrl='',activeMusic='audio',youtubePlaying=false,youtubeReady=false,youtubePendingPlay=false,pendingYoutubeId='',ytPlayer=null,ytApiReady=false;
+function setMusicStatus(text,error=false){musicStatus.textContent=text;musicStatus.style.color=error?'#ff9f9f':'#9ff0b7'}
+function youtubeId(value){try{const u=new URL(value);if(u.hostname.includes('youtu.be'))return u.pathname.split('/')[1];if(u.searchParams.get('v'))return u.searchParams.get('v');const p=u.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/);return p&&p[1]}catch(e){return String(value||'').match(/[\w-]{11}/)?.[0]}}
+function applyPendingYoutube(){if(!ytPlayer||!youtubeReady||!pendingYoutubeId)return;const volume=Math.round(musicVolume.value*100);ytPlayer.unMute();ytPlayer.setVolume(volume);ytPlayer.setLoop(true);if(youtubePendingPlay){ytPlayer.loadPlaylist([pendingYoutubeId],0,0);setTimeout(()=>{if(ytPlayer){ytPlayer.unMute();ytPlayer.setVolume(volume)}},500);youtubePlaying=true;musicToggle.textContent='⏸ Duraklat';setMusicStatus('YouTube müziği çalıyor.')}else{ytPlayer.cuePlaylist([pendingYoutubeId],0,0);youtubePlaying=false;musicToggle.textContent='▶ Çal';setMusicStatus('YouTube hazır; Çal düğmesine bas.')}}
+function ensureYoutubePlayer(){if(!ytApiReady||ytPlayer)return;ytPlayer=new YT.Player('youtubePlayer',{height:'135',width:'240',playerVars:{controls:0,rel:0,playsinline:1,loop:1},events:{onReady:()=>{youtubeReady=true;applyPendingYoutube()},onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){ytPlayer.unMute();ytPlayer.setVolume(Math.round(musicVolume.value*100));youtubePlaying=true;musicToggle.textContent='⏸ Duraklat';setMusicStatus('YouTube müziği çalıyor.')}else if(e.data===YT.PlayerState.PAUSED){youtubePlaying=false;musicToggle.textContent='▶ Çal';setMusicStatus('Müzik duraklatıldı.')}else if(e.data===YT.PlayerState.ENDED&&youtubePendingPlay)ytPlayer.playVideo()},onError:()=>setMusicStatus('Bu YouTube videosu gömülü oynatmaya izin vermiyor. Başka video dene.',true)}})}
+window.onYouTubeIframeAPIReady=()=>{ytApiReady=true;ensureYoutubePlayer()};const ytApiScript=document.createElement('script');ytApiScript.src='https://www.youtube.com/iframe_api';document.head.appendChild(ytApiScript);
+function setMusicSource(src,remember){if(ytPlayer&&youtubeReady)ytPlayer.pauseVideo();youtubePlaying=false;activeMusic='audio';music.src=src;music.load();musicToggle.textContent='▶ Çal';setMusicStatus('Ses dosyası hazır; Çal düğmesine bas.');if(remember){localStorage.setItem('weddingMusicUrl',src);localStorage.removeItem('weddingYoutubeUrl');musicUrl.value=src}}
+function setYoutubeSource(url,autoplay=true){const id=youtubeId(url);if(!id){toast('Geçerli bir YouTube bağlantısı gir.');return false}music.pause();activeMusic='youtube';pendingYoutubeId=id;youtubePendingPlay=autoplay;youtubePlaying=false;youtubeUrl.value=url;musicToggle.textContent=autoplay?'⏳ Yükleniyor':'▶ Çal';setMusicStatus('YouTube oynatıcısı hazırlanıyor...');localStorage.setItem('weddingYoutubeUrl',url);localStorage.removeItem('weddingMusicUrl');ensureYoutubePlayer();if(youtubeReady)applyPendingYoutube();return true}
+function playYoutubeOnPc(url){const id=youtubeId(url);if(!id){toast('Geçerli bir YouTube bağlantısı gir.');return false}if(ytPlayer&&youtubeReady)ytPlayer.pauseVideo();music.pause();activeMusic='external-youtube';youtubeUrl.value=url;localStorage.setItem('weddingYoutubeUrl',url);localStorage.removeItem('weddingMusicUrl');const playUrl='https://www.youtube.com/watch?v='+encodeURIComponent(id)+'&autoplay=1';const opened=window.open(playUrl,'weddingMusic');musicToggle.textContent='↗ YouTube açık';setMusicStatus(opened?'YouTube ayrı sekmede açıldı. Ses bilgisayardan çalacak.':'Tarayıcı yeni sekmeyi engelledi; açılır pencereye izin ver.',!opened);return !!opened}
+document.getElementById('musicSettings').onclick=()=>{wallPanel.classList.remove('open');musicPanel.classList.toggle('open')};
+document.getElementById('wallSettings').onclick=()=>{musicPanel.classList.remove('open');wallPanel.classList.toggle('open')};
+document.getElementById('musicApply').onclick=()=>{const yt=youtubeUrl.value.trim(),url=musicUrl.value.trim();if(yt){playYoutubeOnPc(yt);return}if(!url)return toast('YouTube veya ses bağlantısı gir ya da dosya seç.');setMusicSource(url,true);music.play().then(()=>musicToggle.textContent='⏸ Duraklat').catch(()=>toast('Müziği başlatmak için Çal düğmesine bas.'))};
+document.getElementById('musicFile').onchange=e=>{const file=e.target.files[0];if(!file)return;if(localMusicUrl)URL.revokeObjectURL(localMusicUrl);localMusicUrl=URL.createObjectURL(file);setMusicSource(localMusicUrl,false);music.play().then(()=>musicToggle.textContent='⏸ Duraklat')};
+musicToggle.onclick=()=>{if(activeMusic==='external-youtube'){playYoutubeOnPc(youtubeUrl.value.trim());return}if(activeMusic==='youtube'){if(!youtubeReady){youtubePendingPlay=true;setMusicStatus('YouTube hazırlanıyor; birkaç saniye bekle.');return}youtubePlaying=!youtubePlaying;if(youtubePlaying)ytPlayer.playVideo();else ytPlayer.pauseVideo();musicToggle.textContent=youtubePlaying?'⏸ Duraklat':'▶ Çal';return}if(!music.src)return toast('Önce YouTube, müzik dosyası veya bağlantı seç.');if(music.paused)music.play().then(()=>{musicToggle.textContent='⏸ Duraklat';setMusicStatus('Ses dosyası çalıyor.')}).catch(()=>setMusicStatus('Bu ses dosyası açılamadı.',true));else{music.pause();musicToggle.textContent='▶ Çal';setMusicStatus('Müzik duraklatıldı.')}};
+document.getElementById('soundTest').onclick=async()=>{const C=window.AudioContext||window.webkitAudioContext,ctx=new C();await ctx.resume();const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=523.25;gain.gain.setValueAtTime(.25,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+1);osc.start();osc.stop(ctx.currentTime+1);setMusicStatus('Ses testi çaldı (tarayıcı sesi '+ctx.state+'). Duymuyorsan Chrome sekmesi veya Windows ses karıştırıcısı sessiz olabilir.')};
+musicVolume.oninput=()=>{music.volume=Number(musicVolume.value);if(ytPlayer&&youtubeReady)ytPlayer.setVolume(Math.round(musicVolume.value*100));localStorage.setItem('weddingMusicVolume',musicVolume.value)};
+music.volume=Number(localStorage.getItem('weddingMusicVolume')||.35);musicVolume.value=music.volume;
+music.onplaying=()=>{if(activeMusic==='audio')setMusicStatus('Ses dosyası çalıyor.')};music.onerror=()=>{if(activeMusic==='audio'&&music.src)setMusicStatus('Ses dosyası yüklenemedi.',true)};
+const cleanMode=location.hash==='#temiz',savedYoutube=localStorage.getItem('weddingYoutubeUrl'),savedMusic=localStorage.getItem('weddingMusicUrl');if(savedYoutube){youtubeUrl.value=savedYoutube;activeMusic='external-youtube';musicToggle.textContent="↗ YouTube'da Çal";setMusicStatus('YouTube bağlantısı hazır; düğmeye basınca bilgisayardan çalacak.')}else if(savedMusic){setMusicSource(savedMusic,false);if(cleanMode)music.play().catch(()=>{})}
+
+/* ---- Değiştirilebilir sağ ve sol duvar ---- */
+function wallArt(key){return key==='leftWall'?leftWallArt:rightWallArt}
+function setWallColor(mat,color,key,remember=true){wallArt(key).visible=false;mat.map=null;mat.color.set(color);mat.needsUpdate=true;if(remember){localStorage.setItem(key+'Color',color);localStorage.removeItem(key+'Url')}}
+function coverTexture(t,areaAspect){const iw=t.image.naturalWidth||t.image.videoWidth||t.image.width||1,ih=t.image.naturalHeight||t.image.videoHeight||t.image.height||1,imageAspect=iw/ih;t.encoding=THREE.sRGBEncoding;t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;t.repeat.set(1,1);t.offset.set(0,0);if(imageAspect>areaAspect){t.repeat.x=areaAspect/imageAspect;t.offset.x=(1-t.repeat.x)/2}else if(imageAspect<areaAspect){t.repeat.y=imageAspect/areaAspect;t.offset.y=(1-t.repeat.y)/2}}
+function setPanelTexture(art,src,key,label,remember){new THREE.TextureLoader().load(src,t=>{coverTexture(t,art.scale.x/art.scale.y);art.material.map=t;art.material.needsUpdate=true;art.visible=true;if(remember)localStorage.setItem(key+'Url',src);toast(label+' tek parça ve hizalı olarak yerleştirildi.')},undefined,()=>toast('Resim yüklenemedi. Başka bir dosya veya bağlantı dene.'))}
+function setWallTexture(mat,src,key,remember){mat.map=null;mat.needsUpdate=true;setPanelTexture(wallArt(key),src,key,key==='leftWall'?'Sol duvar':'Sağ duvar',remember)}
+const leftColor=document.getElementById('leftWallColor'),rightColor=document.getElementById('rightWallColor'),leftUrl=document.getElementById('leftWallUrl'),rightUrl=document.getElementById('rightWallUrl');
+leftColor.oninput=()=>setWallColor(leftWallMat,leftColor.value,'leftWall');rightColor.oninput=()=>setWallColor(rightWallMat,rightColor.value,'rightWall');
+document.getElementById('leftWallFile').onchange=e=>{const f=e.target.files[0];if(f)setWallTexture(leftWallMat,URL.createObjectURL(f),'leftWall',false)};document.getElementById('rightWallFile').onchange=e=>{const f=e.target.files[0];if(f)setWallTexture(rightWallMat,URL.createObjectURL(f),'rightWall',false)};
+document.getElementById('leftWallApply').onclick=()=>leftUrl.value.trim()?setWallTexture(leftWallMat,leftUrl.value.trim(),'leftWall',true):setWallColor(leftWallMat,leftColor.value,'leftWall');
+document.getElementById('rightWallApply').onclick=()=>rightUrl.value.trim()?setWallTexture(rightWallMat,rightUrl.value.trim(),'rightWall',true):setWallColor(rightWallMat,rightColor.value,'rightWall');
+document.getElementById('wallReset').onclick=()=>{leftColor.value=rightColor.value='#59396d';setWallColor(leftWallMat,'#59396d','leftWall');setWallColor(rightWallMat,'#59396d','rightWall');leftUrl.value=rightUrl.value=''};
+leftColor.value=localStorage.getItem('leftWallColor')||'#59396d';rightColor.value=localStorage.getItem('rightWallColor')||'#59396d';setWallColor(leftWallMat,leftColor.value,'leftWall',false);setWallColor(rightWallMat,rightColor.value,'rightWall',false);
+const savedLeftWall=localStorage.getItem('leftWallUrl'),savedRightWall=localStorage.getItem('rightWallUrl');if(savedLeftWall){leftUrl.value=savedLeftWall;setWallTexture(leftWallMat,savedLeftWall,'leftWall',false)}if(savedRightWall){rightUrl.value=savedRightWall;setWallTexture(rightWallMat,savedRightWall,'rightWall',false)}
+const backdropUrl=document.getElementById('backdropUrl');document.getElementById('backdropFile').onchange=e=>{const f=e.target.files[0];if(f)setPanelTexture(backdropArt,URL.createObjectURL(f),'backdrop','Gelin-damat arkası',false)};
+document.getElementById('backdropApply').onclick=()=>{const url=backdropUrl.value.trim();if(url)setPanelTexture(backdropArt,url,'backdrop','Gelin-damat arkası',true);else toast('Önce sahne arkası resmi seç veya bağlantı gir.')};
+document.getElementById('backdropClear').onclick=()=>{backdropArt.visible=false;backdropUrl.value='';localStorage.removeItem('backdropUrl');toast('Sahne arkası resmi kaldırıldı.')};
+const savedBackdrop=localStorage.getItem('backdropUrl');if(savedBackdrop){backdropUrl.value=savedBackdrop;setPanelTexture(backdropArt,savedBackdrop,'backdrop','Gelin-damat arkası',false)}
+
+/* ---- Animasyon ---- */
+const clock=new THREE.Clock();let clapUntil=0,coupleDanceUntil=0,danceTripsPending=0;
+function update(g,t,dt){
+  const u=g.userData,L=u.legs,A=u.arms;
+  if(u.mode==='posing'){
+    g.rotation.y=0;g.position.y=.2;A.forEach(a=>{a.rotation.x=-.72;a.rotation.z=-a.s*.42});g.rotation.z=Math.sin(t*2+u.ph)*.025;
+    if(t>=u.poseUntil)beginReturnTrip(g);return
+  }
+  if(!u.sitting){
+    const p=u.path[u.i],dx=p.x-g.position.x,dz=p.z-g.position.z,d=Math.hypot(dx,dz),st=(u.mode==='entering'?2.4:2.8)*dt;
+    if(d<=st){g.position.x=p.x;g.position.z=p.z;u.i++;
+      if(u.i>=u.path.length){if(u.mode==='toPhoto'){u.mode='posing';u.poseUntil=t+(u.photoJob?.action==='dance'?6:4);g.rotation.y=0;g.position.y=.2;if(u.photoJob?.danceTrip){danceTripsPending=Math.max(0,danceTripsPending-1);if(danceTripsPending===0)coupleDanceUntil=0}toast('📸 '+u.name+' gelin ve damatla poz veriyor!');runGiftAction(u.photoJob);return}
+        sitGuest(g);if(u.photoQueue.length)beginPhotoTrip(g);return}}
+    else{g.position.x+=dx/d*st;g.position.z+=dz/d*st;g.rotation.y=Math.atan2(dx,dz)}
+    const s=Math.sin(t*8+u.ph)*.6;L[0].rotation.x=s;L[1].rotation.x=-s;
+    A[0].rotation.x=-s*.6;A[1].rotation.x=s*.6;g.position.y=Math.abs(s)*.06;
+  }else{
+    const clap=t<clapUntil;
+    A.forEach(a=>{if(clap){a.rotation.x=-1.25;a.rotation.z=-a.s*(.12+.3*Math.abs(Math.sin(t*13+u.ph)))}
+      else{a.rotation.x=-.45;a.rotation.z=-a.s*.12}});
+    g.rotation.z=Math.sin(t*1.5+u.ph)*.015;
+  }
+}
+function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+  guests.forEach(g=>update(g,t,dt));
+  const clap=t<clapUntil,dancing=t<coupleDanceUntil;
+  [bride,groom,imam].forEach((p,i)=>{p.rotation.z=Math.sin(t*1.2+i)*.015;
+    if((p===bride||p===groom)&&dancing){p.rotation.y=Math.sin(t*3.8+i)*.45;p.position.y=.2+Math.abs(Math.sin(t*5+i))*.12;p.userData.arms.forEach(a=>{a.rotation.x=-1.1;a.rotation.z=-a.s*(.35+.2*Math.sin(t*6))})}
+    else{p.rotation.y=0;if(p===bride||p===groom)p.position.y=.2;if(p===bride||p===groom)p.userData.arms.forEach(a=>{a.rotation.x=-.95;a.rotation.z=0});else p.userData.arms.forEach(a=>{a.rotation.x=0;a.rotation.z=-a.s*.08})}});
+  for(let i=0;i<N;i++){if(cp[i*3+1]>-40){cv[i*3+1]-=6*dt;for(let k=0;k<3;k++)cp[i*3+k]+=cv[i*3+k]*dt;if(cp[i*3+1]<0)cp[i*3+1]=-50}}
+  cg.attributes.position.needsUpdate=true;
+  warm.intensity+=(1.2-warm.intensity)*.05;
+  ren.render(scene,cam)}
+loop();
+</script></body></html>
+
